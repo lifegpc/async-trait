@@ -1586,21 +1586,31 @@ pub mod issue236 {
     }
 }
 
-// https://github.com/dtolnay/async-trait/issues/238
-pub mod issue238 {
-    #![deny(single_use_lifetimes)]
-
+// https://github.com/dtolnay/async-trait/issues/77
+pub mod issue77 {
     use async_trait::async_trait;
 
-    #[async_trait]
+    #[async_trait(+Sync)]
     pub trait Trait {
-        async fn f();
+        async fn f(&self);
     }
 
-    pub struct Struct;
+    struct A;
 
-    #[async_trait]
-    impl Trait for &Struct {
-        async fn f() {}
+    #[async_trait(+Sync)]
+    impl Trait for A {
+        async fn f(&self) {}
+    }
+
+    #[test]
+    fn test() {
+        fn inner_test<T>(_: T)
+        where
+            T: Send + Sync,
+        {
+        }
+
+        let fut = A.f();
+        inner_test(fut);
     }
 }
